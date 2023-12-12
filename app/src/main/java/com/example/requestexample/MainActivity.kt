@@ -1,34 +1,36 @@
 package com.example.requestexample
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.liveData
-import com.example.requestexample.databinding.ActivityMainBinding
-import retrofit2.Response
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+
+private const val TAG = "CHECK RESPONSE"
 
 class MainActivity : AppCompatActivity() {
+    private val mainUrl = "https://jsonplaceholder.typicode.com/"
 
-    private val binding: ActivityMainBinding by lazy { ActivityMainBinding.inflate(layoutInflater) }
-
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_main)
 
-        val retrofitService = RetrofitInstance.getRetrofitInstance().create(AlbumService::class.java)
+        val api = Retrofit.Builder()
+            .baseUrl(mainUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(AlbumService::class.java)
 
-        val responseLiveData: LiveData<Response<Albums>> = liveData {
-            val response = retrofitService.getAlbums()
-            emit(response)
-        }
-
-        responseLiveData.observe(this) {
-            val albumList = it.body()?.listIterator()
-            if (albumList != null) {
-                while (albumList.hasNext()) {
-                    val item = albumList.next()
-                    val title = "Album title: ${item.title} \n"
-                    binding.titleTextView.append(title)
+        GlobalScope.launch(Dispatchers.IO) {
+            val response = api.getAlbums()
+            if (response.isSuccessful) {
+                for (item in response.body()!!) {
+                    Log.i(TAG, "getAllAlbums: ${item.title}")
                 }
             }
         }

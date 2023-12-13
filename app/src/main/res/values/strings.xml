@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">RequestExample</string>
+    <string name="title">Input title</string>
+    <string name="body">Input body</string>
+    <string name="userid">Input userId</string>
+    <string name="id">Input id</string>
 </resources>
